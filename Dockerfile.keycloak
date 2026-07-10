@@ -1,0 +1,12 @@
+# FROM quay.io/keycloak/keycloak:24.0.5
+
+FROM quay.io/keycloak/keycloak:20.0.0
+
+# Set environment variables for the build stage
+ENV KC_DB=postgres
+ENV KC_FEATURES=token-exchange
+
+# Perform the build optimization
+RUN /opt/keycloak/bin/kc.sh build
+
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]

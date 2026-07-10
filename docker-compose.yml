@@ -1,0 +1,60 @@
+version: '3.9'
+
+services:
+  keycloak_admin_console:
+    container_name: keycloak_container # Matches the hostname in Central Proxy
+    build:
+      context: .
+      dockerfile: Dockerfile.keycloak
+    command: start --optimized
+    env_file:
+      - .env
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres_keycloak
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_PASSWORD: password
+      KC_DB_USERNAME: keycloak
+      
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      
+      KC_PROXY: edge
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      
+      # Adjusted to match the central proxy domain configuration
+      KC_HOSTNAME_ADMIN_URL: ${KC_HOSTNAME}
+      KC_HOSTNAME_URL: ${KC_HOSTNAME}
+    depends_on:
+      postgres_keycloak:
+        condition: service_healthy
+    networks:
+      - keycloak_internal
+      - kc_shared_central_nginx_proxy_network
+
+  postgres_keycloak:
+    container_name: postgres_kc_container
+    image: postgres:15-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    volumes:
+      - pgdata_keycloak_nginx:/var/lib/postgresql/data
+    networks:
+      - keycloak_internal
+
+volumes:
+  pgdata_keycloak_nginx:
+
+networks:
+  keycloak_internal:
+    driver: bridge
+  kc_shared_central_nginx_proxy_network:
+    external: true

@@ -1,0 +1,67 @@
+services:
+  keycloak_admin_console:
+    container_name: keycloak_container
+    build:
+      context: .
+      dockerfile: Dockerfile.keycloak
+    # 'start' is for production. Ensure you have optimized the build in the Dockerfile.
+    command: start --optimized
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres_keycloak
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_PASSWORD: password
+      KC_DB_USERNAME: keycloak
+      # Admin Credentials
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      
+      # Proxy settings for Nginx SSL termination
+      KC_PROXY: edge
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      
+      KC_HOSTNAME_ADMIN_URL: https://localhost:8443
+      KC_HOSTNAME_URL: https://localhost:8443
+    depends_on:
+      postgres_keycloak:
+        condition: service_healthy
+    networks:
+      - keycloak_nginx_dev_network
+
+  postgres_keycloak:
+    container_name: postgres_kc_container
+    image: postgres:15-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    volumes:
+      - pgdata_keycloak_nginx:/var/lib/postgresql/data
+    networks:
+      - keycloak_nginx_dev_network
+
+  nginx_keycloak:
+    container_name: nginx_kc_container
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "80:80"     # Standard HTTP for redirect
+      - "8443:443"  # Exposed SSL port
+    depends_on:
+      - keycloak_admin_console
+    networks:
+      - keycloak_nginx_dev_network
+
+volumes:
+  pgdata_keycloak_nginx:
+
+networks:
+  keycloak_nginx_dev_network:
+    driver: bridge
