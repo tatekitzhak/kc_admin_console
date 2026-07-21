@@ -102,7 +102,7 @@ jobs:
             
             services:
               keycloak_admin_console:
-                image: ${DOCKER_USERNAME}/keycloak-admin-console
+                image: ${DOCKER_USERNAME}/keycloak-admin-console:main
                 container_name: keycloak_container
                 command: start --optimized
                 env_file:
