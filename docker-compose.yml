@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   keycloak_admin_console:
-    container_name: keycloak_container # Matches the hostname in Central Proxy
+    container_name: keycloak_container
     build:
       context: .
       dockerfile: Dockerfile.keycloak
@@ -23,9 +23,8 @@ services:
       KC_HOSTNAME_STRICT: "false"
       KC_HTTP_ENABLED: "true"
       
-      # Adjusted to match the central proxy domain configuration
-      KC_HOSTNAME_ADMIN_URL: ${KC_HOSTNAME}
-      KC_HOSTNAME_URL: ${KC_HOSTNAME}
+      KC_HOSTNAME_ADMIN_URL: ${KC_ADMIN_CONSOLE_URL_APP}
+      KC_HOSTNAME_URL: ${KC_ADMIN_CONSOLE_URL_APP}
     depends_on:
       postgres_keycloak:
         condition: service_healthy

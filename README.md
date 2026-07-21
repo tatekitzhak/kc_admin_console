@@ -28,8 +28,8 @@ RUN folder files: /home/ubuntu/kc-app-https
 
 openssl req -x509 -out localhost.crt -keyout localhost.key \
   -newkey rsa:2048 -nodes -sha256 -days 365 \
-  -subj "/CN=18.220.59.42" -extensions EXT -config <( \
-   printf "[dn]\nCN=18.220.59.42\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=IP:18.220.59.42\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+  -subj "/CN=18.221.18.219" -extensions EXT -config <( \
+   printf "[dn]\nCN=18.221.18.219\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=IP:18.221.18.219\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
 
 ***** IF PROD ****
 openssl req -x509 -out prod.crt -keyout prod.key \
@@ -140,4 +140,77 @@ Logs:
 - docker logs -f keycloak
 
 
-http://localhost:3000/#error=login_required&state=e29fb1f7-72d2-4685-a5c8-ec7d8f06c91e&iss=https%3A%2F%2Flocalhost%3A8443%2Frealms%2Fthemelinx
+## To create an OIDC identity provider (IdP) in AWS and specify its audience for GitHub (AWS CLI)
+- Provider URL (Issuer URL): `https://token.actions.githubusercontent.com`
+- Audience (Client ID): `sts.amazonaws.com`
+- `https://aws.amazon.com/blogs/security/use-iam-roles-to-connect-github-actions-to-actions-in-aws/`
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws:iam::<Account ID>:oidc-provider/token.actions.githubusercontent.com"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "token.actions.githubusercontent.com:sub": "repo:Ran-Itzhack/terraform_and_gitHub_action_workflows:ref:refs/heads/<ExampleBranch>",
+                    "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+                }
+            }
+        }
+    ]
+}
+```
+
+```bash
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws:iam::<Account ID>:oidc-provider/token.actions.githubusercontent.com"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+                },
+                "StringLike": {
+                    "token.actions.githubusercontent.com:sub": "repo:<BRANCH_NAME>/<REPOSITORY_NAME>:*"
+                }
+            }
+        }
+    ]
+}
+```
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Principal": {
+                "Federated": "arn:aws:iam::937325632884:oidc-provider/token.actions.githubusercontent.com"
+            },
+            "Condition": {
+                "StringEquals": {
+                    "token.actions.githubusercontent.com:aud": [
+                        "sts.amazonaws.com"
+                    ]
+                },
+                "StringLike": {
+                    "token.actions.githubusercontent.com:sub": [
+                        "repo:tatekitzhak/kc_admin_console:*",
+                        "repo:tatekitzhak/kc_admin_console:*"
+                    ]
+                }
+            }
+        }
+    ]
+}
