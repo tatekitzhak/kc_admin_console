@@ -80,6 +80,7 @@ jobs:
         env:
           # Pass environment variables and secrets into step context
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          KC_ADMIN_REPOSITORY_NAME: ${{ secrets.KC_ADMIN_REPOSITORY_NAME }}
           KC_ADMIN_CONSOLE_URL_APP: ${{ secrets.KC_ADMIN_CONSOLE_URL_APP || 'https://localhost:8443' }}
           KC_ADMIN_CLIENT_URL_PORT: ${{ secrets.KC_ADMIN_CLIENT_URL_PORT || '8443' }}
           KC_REALMS_NAME: ${{ secrets.KC_REALMS_NAME || 'HTTPs_localhost_realm' }}
@@ -102,7 +103,7 @@ jobs:
             
             services:
               keycloak_admin_console:
-                image: ${DOCKER_USERNAME}/keycloak-admin-console:main
+                image: ${DOCKER_USERNAME}/${KC_ADMIN_REPOSITORY_NAME}:main
                 container_name: keycloak_container
                 command: start --optimized
                 env_file:
@@ -181,17 +182,17 @@ jobs:
               --arg b64_compose "$B64_COMPOSE" \
               --arg b64_env "$B64_ENV" \
               '{commands: [
-                "mkdir -p /home/ubuntu/cicd_kc_admin_console",
-                "echo \"\($b64_compose)\" | base64 -d > /home/ubuntu/cicd_kc_admin_console/docker-compose.yml",
-                "echo \"\($b64_env)\" | base64 -d > /home/ubuntu/cicd_kc_admin_console/.env",
+                "mkdir -p /home/ubuntu/github_action_kc_admin_con",
+                "echo \"\($b64_compose)\" | base64 -d > /home/ubuntu/github_action_kc_admin_con/docker-compose.yml",
+                "echo \"\($b64_env)\" | base64 -d > /home/ubuntu/github_action_kc_admin_con/.env",
                 "echo \"--- Inspecting Decoded Files ---\"",
-                "cat /home/ubuntu/cicd_kc_admin_console/docker-compose.yml",
+                "cat /home/ubuntu/github_action_kc_admin_con/docker-compose.yml",
                 "echo \"--- Ensuring External Network Exists ---\"",
                 "sudo docker network create kc_shared_central_nginx_proxy_network 2>/dev/null || true",
                 "echo \"--- Pulling Latest Docker Image ---\"",
-                "sudo docker compose -f /home/ubuntu/cicd_kc_admin_console/docker-compose.yml pull 2>&1 || sudo docker-compose -f /home/ubuntu/cicd_kc_admin_console/docker-compose.yml pull 2>&1",
+                "sudo docker compose -f /home/ubuntu/github_action_kc_admin_con/docker-compose.yml pull 2>&1 || sudo docker-compose -f /home/ubuntu/github_action_kc_admin_con/docker-compose.yml pull 2>&1",
                 "echo \"--- Starting Docker Compose ---\"",
-                "sudo docker compose -f /home/ubuntu/cicd_kc_admin_console/docker-compose.yml up -d --remove-orphans 2>&1 || sudo docker-compose -f /home/ubuntu/cicd_kc_admin_console/docker-compose.yml up -d --remove-orphans 2>&1",
+                "sudo docker compose -f /home/ubuntu/github_action_kc_admin_con/docker-compose.yml up -d --remove-orphans 2>&1 || sudo docker-compose -f /home/ubuntu/github_action_kc_admin_con/docker-compose.yml up -d --remove-orphans 2>&1",
                 "sleep 3",
                 "echo \"--- Container Verification ---\"",
                 "sudo docker ps -a"

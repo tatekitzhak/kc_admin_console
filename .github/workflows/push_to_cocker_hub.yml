@@ -37,7 +37,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{secrets.DOCKER_USERNAME}}/keycloak-admin-console
+          images: ${{secrets.DOCKER_USERNAME}}/${{secrets.KC_ADMIN_REPOSITORY_NAME}}
 
       - name: print ${{steps.meta.outputs.tags}}
         run: echo "Build Docker- ${{toJSON(steps.meta)}}"
