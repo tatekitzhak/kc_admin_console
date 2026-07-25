@@ -10,5 +10,5 @@ else
     echo "Network 'kc_shared_central_nginx_proxy_network' already exists. Skipping."
 fi
 
-docker-compose build
-docker-compose up -d
+docker compose build
+docker compose up -d
